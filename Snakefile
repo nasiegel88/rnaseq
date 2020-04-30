@@ -1,9 +1,15 @@
-sample_links = {"ERR458493": "https://osf.io/5daup/download",
-                "ERR458494":"https://osf.io/8rvh5/download",
-                 "ERR458495":"https://osf.io/2wvn3/download",
-                 "ERR458500":"https://osf.io/xju4a/download",
-                 "ERR458501": "https://osf.io/nmqe6/download",
-                 "ERR458502": "https://osf.io/qfsze/download"}
+sample_links = {"GSM3773108": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079176/1061_TGACCA_combined_R2_001.fastq.gz",
+                "GSM3773109": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079177/1067_ACAGTG_combined_R2_001.fastq.gz",
+                "GSM3773111": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079178/1069_GCCAAT_combined_R2_001.fastq.gz",
+                "GSM3773112": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079179/1074_ACTTGA_combined_R2_001.fastq.gz",
+                "GSM3773114": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079180/1076_GATCAG_combined_R2_001.fastq.gz",
+                "GSM3773116": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079181/1079_TAGCTT_combined_R2_001.fastq.gz",
+                "GSM3773117": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079182/1017_ATCACG_combined_R2_001.fastq.gz",
+                "GSM3773119": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079183/1027_CGATGT_combined_R2_001.fastq.gz",
+                "GSM3773121": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079184/1059_TTAGGC_combined_R2_001.fastq.gz",
+                "GSM3773122": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079187/1085_CTTGTA_combined_R2_001.fastq.gz",
+                "GSM3773124": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079185/1072_CAGATC_combined_R2_001.fastq.gz",
+                "GSM3773125": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079186/1082_GGCTAC_combined_R2_001.fastq.gz"}
 
 # the sample names are dictionary keys in sample_links. extract them to a list we can use below
 SAMPLES=sample_links.keys()
@@ -15,7 +21,7 @@ rule all:
         expand("rnaseq/quant/{name}_quant/quant.sf", name=SAMPLES),
         "rnaseq/fastqc/multiqc_report.html",
 
-# download yeast rna-seq data from Schurch et al, 2016 study
+# download human rna-seq data from Duclose et al, 2019 study
 rule download_reads:
     output: "rnaseq/raw_data/{sample}.fq.gz" 
     params:
@@ -80,16 +86,16 @@ rule multiqc:
         multiqc {params.raw_dir} {params.trimmed_dir} --filename {output}
         """
 
-### download and index the yeast transcriptome ###
-rule download_yeast_transcriptome:
-    output: "rnaseq/reference/Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa.gz" 
+### download and index the human transcriptome ###
+rule download_human_transcriptome:
+    output: "rnaseq/reference/Homo_sapiens.GRCh38.cdna.all.fa.gz" 
     shell:
         """
-        curl -L ftp://ftp.ensembl.org/pub/release-99/fasta/saccharomyces_cerevisiae/cdna/Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa.gz -o {output}
+        curl -L ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz -o {output}
         """
 
 rule salmon_index:
-    input: "rnaseq/reference/Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa.gz" 
+    input: "rnaseq/reference/Homo_sapiens.GRCh38.cdna.all.fa.gz" 
     output: directory("rnaseq/quant/sc_ensembl_index")
     conda: "rnaseq-env.yml"
     shell:
@@ -108,5 +114,6 @@ rule salmon_quantify:
     conda: "rnaseq-env.yml"
     shell:
         """
-        salmon quant -i {input.index_dir} --libType A -r {input.reads} -o {params.outdir} --seqBias --gcBias --validateMappings
+        salmon quant -i {input.index_dir} --libType A -r {input.reads} -o {params.outdir} --seqBias --useVBOpt --validateMappings
         """
+
