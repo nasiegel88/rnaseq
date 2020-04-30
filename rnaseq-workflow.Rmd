@@ -80,21 +80,21 @@ simplifies the way we interact with this information.
 
 ```{r}
 indexDir <- file.path("rnaseq", "quant", "sc_ensembl_index")
-fastaFTP <- c("ftp://ftp.ensembl.org/pub/release-99/fasta/saccharomyces_cerevisiae/cdna/Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa.gz")
-gtfPath <- "ftp://ftp.ensembl.org/pub/release-99/gtf/saccharomyces_cerevisiae/Saccharomyces_cerevisiae.R64-1-1.99.gtf.gz"
-gtfLocal <- "yeast_ref/Saccharomyces_cerevisiae.R64-1-1.99.gtf.gz"
-fastaLocal <- "yeast_ref/Saccharomyces_cerevisiae.R64-1-1.cdna.all.fa.gz"
+fastaFTP <- c("ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz")
+gtfPath <- "ftp://ftp.ensembl.org/pub/release-99/gtf/homo_sapiens/Homo_sapiens.GRCh38.99.gtf.gz"
+gtfLocal <- "human_ref/Homo_sapiens.GRCh38.99.gtf.gz"
+fastaLocal <- "human_ref/Homo_sapiens.GRCh38.cdna.all.fa.gz"
 ```
 
 With this information set, we can now build an object that saves this information.
 ```{r, warning = F}
 makeLinkedTxome(indexDir = indexDir,
                 source   = "Ensembl", 
-                organism = "Saccharomyces cerevisiae", 
+                organism = "Homo sapiens", 
                 release  = "99", 
                 fasta    = fastaLocal,
                 gtf      = gtfLocal,
-                genome   = "GCA_000146045.2",
+                genome   = "GCF_000001405.39",
                 write    = FALSE)
 ```
 
