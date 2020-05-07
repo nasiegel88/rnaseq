@@ -1,3 +1,4 @@
+
 sample_links = {"GSM3773108": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079176/1061_TGACCA_combined_R2_001.fastq.gz",
                 "GSM3773109": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079177/1067_ACAGTG_combined_R2_001.fastq.gz",
                 "GSM3773111": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079178/1069_GCCAAT_combined_R2_001.fastq.gz",
@@ -96,11 +97,11 @@ rule download_human_transcriptome:
 
 rule salmon_index:
     input: "rnaseq/reference/Homo_sapiens.GRCh38.cdna.all.fa.gz" 
-    output: directory("rnaseq/quant/sc_ensembl_index")
+    output: "rnaseq/quant/sc_ensembl_index"
     conda: "rnaseq-env.yml"
     shell:
         """
-        salmon index --index {output} --transcripts {input} # --type quasi
+        salmon index --index {output} --transcripts {input} # --type quasi -k 21
         """
 
 ### quantify reads with salmon
