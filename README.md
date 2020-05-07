@@ -1,8 +1,6 @@
-# 2020-ggg-201b-rnaseq
+# rnaseq
 
-February 28, 2020  
-
-[GGG201b, Intro to Bioinformatics](https://github.com/ngs-docs/2020-GGG201b-lab)
+May 07, 2020  
 
 UC Davis
 
