@@ -256,7 +256,8 @@ see how counts change for a specific gene. We can use the following code
 to produce such a plot:
 
 ```{r gene_count}
-plotCounts(dds, gene=which.min(res$padj), intgroup="condition")
+# Il22Ra expression
+plotCounts(dds, gene='ENSG00000142677', intgroup="condition")
 ```
 
 **Question**  
