@@ -31,6 +31,6 @@ snakemake -np -j 100 --use-conda
 # print out various information about the job
 env | grep SLURM            # Print out values of the current jobs SLURM environment variables
 
-scontrol show job ${SLURM_JOB_ID}     # Print out final statistics about resource uses before job exits
+#scontrol show job ${SLURM_JOB_ID}     # Print out final statistics about resource uses before job exits
 
 sstat --format 'JobID,MaxRSS,AveCPU' -P ${SLURM_JOB_ID}.batch
