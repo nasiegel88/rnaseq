@@ -1,11 +1,11 @@
 #!/bin/bash -login
 	#SBATCH -p high                # partition, or queue, to assign to
-	#SBATCH -J make-table          # name for job
+	#SBATCH -J ets04               # name for job
 	#SBATCH -N 1                   # one "node", or computer
 	#SBATCH -n 1                   # one task for this node
 	#SBATCH -c 8                   # eight cores per task
 	#SBATCH -t 8:00:00             # ask for no more than 30 minutes
-	#SBATCH --mem=10gb             # ask for no more than 10 GB of memory
+	#SBATCH --mem=16gb             # ask for no more than 10 GB of memory
 	
 	# initialize conda
 	. ~/miniconda3/etc/profile.d/conda.sh
