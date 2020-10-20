@@ -1,16 +1,6 @@
 
-sample_links = {"GSM3773108": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079176/1061_TGACCA_combined_R2_001.fastq.gz",
-                "GSM3773109": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079177/1067_ACAGTG_combined_R2_001.fastq.gz",
-                "GSM3773111": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079178/1069_GCCAAT_combined_R2_001.fastq.gz",
-                "GSM3773112": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079179/1074_ACTTGA_combined_R2_001.fastq.gz",
-                "GSM3773114": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079180/1076_GATCAG_combined_R2_001.fastq.gz",
-                "GSM3773116": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079181/1079_TAGCTT_combined_R2_001.fastq.gz",
-                "GSM3773117": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079182/1017_ATCACG_combined_R2_001.fastq.gz",
-                "GSM3773119": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079183/1027_CGATGT_combined_R2_001.fastq.gz",
-                "GSM3773121": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079184/1059_TTAGGC_combined_R2_001.fastq.gz",
-                "GSM3773122": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079187/1085_CTTGTA_combined_R2_001.fastq.gz",
-                "GSM3773124": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079185/1072_CAGATC_combined_R2_001.fastq.gz",
-                "GSM3773125": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079186/1082_GGCTAC_combined_R2_001.fastq.gz"}
+sample_links = {"ETS_NEO": "https://osf.io/tyce4/download",
+                 "FA_NEO": "https://osf.io/whx3s/download}
 
 # the sample names are dictionary keys in sample_links. extract them to a list we can use below
 SAMPLES=sample_links.keys()
