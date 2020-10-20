@@ -1,8 +1,7 @@
 ---
-title: "Differential Expression and Visualization in R"
+title: "ETO4 Preliminary RNA seq"
 author: 
-  - Taylor Reiter
-  - N. Tessa Pierce
+  - Noah Siegel
 output: html_document
 ---
 
@@ -60,14 +59,10 @@ library(pheatmap)
 library(kableExtra)
 ```
 
-This lesson is executed in binder, so the relevant paths should work if we're
-running this from within the 2020-ggg-201b-rnaseq folder.
-
-First let's read in our `rnaseq_samples.csv` file. This file designates the names
-of our samples, their conditions, and the path to their quantification files. 
 ```{r}
 samples <- read_csv("rnaseq_samples.csv")
 ```
+List samples
 
 ```{r, echo = F}
 kableExtra::kable(samples) %>%
@@ -75,8 +70,7 @@ kableExtra::kable(samples) %>%
 ```
 
 
-Next we need to define our reference files. We will use ensembl files, as this
-simplifies the way we interact with this information. 
+Define reference files
 
 ```{r}
 indexDir <- file.path("rnaseq", "quant", "sc_ensembl_index")
@@ -86,7 +80,7 @@ gtfLocal <- "human_ref/Homo_sapiens.GRCh38.99.gtf.gz"
 fastaLocal <- "human_ref/Homo_sapiens.GRCh38.cdna.all.fa.gz"
 ```
 
-With this information set, we can now build an object that saves this information.
+Build object
 ```{r, warning = F}
 makeLinkedTxome(indexDir = indexDir,
                 source   = "Ensembl", 
@@ -117,61 +111,19 @@ And to summarize to gene level, we can use `summarizeToGene()`.
 gse <- summarizeToGene(se)
 ```
 
-And now let's take a look at the data
+Data
 
 ```{r, eval = F}
 rowRanges(gse)
 mcols(gse)
 ```
 
-
-## Why do we need to normalize and transform read counts
-
-Given a uniform sampling of a diverse transcript pool, the number of sequenced reads mapped to a gene depends on:
-
-+ its own expression level,
-+ its length,
-+ the sequencing depth,
-+ the expression of all other genes within the sample.
-
-In order to compare the gene expression between two conditions, we must therefore calculate the fraction of the reads assigned to each gene relative to the total number of reads and with respect to the entire RNA repertoire which may vary drastically from sample to sample. While the number of sequenced reads is known, the total RNA library and its complexity is unknown and variation between samples may be due to contamination as well as biological reasons. **The purpose of normalization is to eliminate systematic effects that are not associated with the biological differences of interest.**
-
-Normalization aims at correcting systematic technical biases in the data, in order to make read counts comparable across samples. The normalization proposed by DESeq2 relies on the hypothesis that most features are not differentially expressed. It computes a scaling factor for each sample. Normalized read counts are obtained by dividing raw read counts by the scaling factor associated with the sample they belong to.
-
 ## Differential Expression with `DESeq2`
 
-<center><img src="_static/de_theory.png" width="90%"></center>
-<br>
-Image credit: Paul Pavlidis, UBC
-<br>
-
-Differential expression analysis with DESeq2 involves multiple steps as displayed in the flowchart below. Briefly,
-
-+ DESeq2 will model the raw counts, using normalization factors (size factors) to account for differences in library depth.
-+ Then, it will estimate the gene-wise dispersions and shrink these estimates to generate more accurate estimates of dispersion to model the counts.
-+ Finally, DESeq2 will fit the negative binomial model and perform hypothesis testing using the Wald test or Likelihood Ratio Test.
-
-<center><img src="_static/DESeq2_workflow.png" width="90%"></center>
-<br>
-
-We're now ready to use `DESeq2`, the package that will perform differential 
-expression.
-
-We'll start with a function called `DESeqDataSetFromTximport` which will 
-transform our `txi` object into something that other functions in `DESeq2` can
-work on. This is where we also give information about our samples contain
-in the `samples` data.frame, and where we provide our experimental design. **A design formula tells the statistical software the known sources of variation to control for, as well as, the factor of interest to test for during differential expression testing. Here our experimental design has one factor with two levels.**
-
+Create DESeq object
 ```{r dds_from_set}
 dds <- DESeqDataSet(se = gse, design = ~condition)
 ```
-
-Note: DESeq stores virtually all information associated with your experiment in one specific R object, called DESeqDataSet. This is, in fact, a specialized object of the class “SummarizedExperiment". This, in turn,is a container where rows (rowRanges()) represent features of interest (e.g. genes, transcripts, exons) and columns represent samples (colData()). The actual count data is stored in theassay()slot.
-
-The first thing we notice is that both our counts and average transcript
-length were used to construct the `DESeq` object. We also see a warning
-message, where our condition was converted to a factor. Both of these
-messages are ok to see!
 
 Now that we have a DESeq2 object, we can can perform differential expression.
 
@@ -214,9 +166,7 @@ Speaking of log2fold change, what do all of these columns mean?
 | padj | adjusted p-values |
 
 
-We see that the default differential expression output is sorted the same way
-as our input counts. Instead, it can be helpful to sort and filter by adjusted
-p value or log2 Fold Change:
+Filter by adjusted p value or log2 Fold Change:
 
 ```{r}
 res_sig <- subset(res, padj<.05)
@@ -243,26 +193,15 @@ The MA plot provides a global view of the relationship between the expression ch
 ```{r ma_plt}
 plotMA(res)
 ```
-
-
-**Question**  
-Why are more genes grey on the left side of the axis than on the right side?
  
 
 ### Plotting individual genes
 
-Although it's helpful to plot many (or all) genes at once, sometimes we want to
-see how counts change for a specific gene. We can use the following code
-to produce such a plot:
-
+Il22Ra
 ```{r gene_count}
 # Il22Ra expression
 plotCounts(dds, gene='ENSG00000142677', intgroup="condition")
 ```
-
-**Question**  
-What gene is plotted here (i.e., what criteria did we use to select a single 
-gene to plot)?
 
 ### Normalization & Transformation
 
@@ -328,13 +267,7 @@ How similar are the samples between conditions?
 
 ### Heatmap
 
-Heatmaps are a great way to look at gene counts. To do that, we can use a 
-function in the `pheatmap` package. Here we demonstrate how to install a 
-package from the CRAN repository and then load it into our environment. 
-
-Next, we can select a subset of genes to plot. Although we could plot all ~6000
-yeast genes, let's choose the 20 genes with the largest positive log2fold 
-change.
+Top 20 genes with the largest postivie log2fold change
 
 ```{r}
 genes <- order(res_lfc$log2FoldChange, decreasing=TRUE)[1:20]
@@ -366,20 +299,3 @@ And now plot the heatmap!
 pheatmap(assay(vsd)[genes, ], cluster_rows=TRUE, show_rownames=TRUE,
          cluster_cols=FALSE, annotation_col=annot_col)
 ```
-
-
-We see that our samples do cluster by condition, but that by looking at just the
-counts, the patterns aren't very strong. How does this compare to our MDS plot?
-
-**Question**  
-When are heatmaps useful?   
-What other types of heatmaps have you seen in the wild?
-
-## Further Notes
-
-Here are some helpful notes or resources for anyone performing differential
-expression.
-
-+ Introduction to differential gene expression analysis using RNA-seq (Written by Friederike Dündar, Luce Skrabanek, Paul Zumbo). Click [here](http://chagall.med.cornell.edu/RNASEQcourse/Intro2RNAseq.pdf)
-
-+ Introduction to DGE - click [here](https://hbctraining.github.io/DGE_workshop/lessons/04_DGE_DESeq2_analysis.html)
