@@ -79,14 +79,14 @@ rule multiqc:
 
 ### download and index the human transcriptome ###
 rule download_human_transcriptome:
-    output: "rnaseq/reference/Homo_sapiens.GRCh38.cdna.all.fa.gz" 
+    output: "rnaseq/reference/Mus_musculus.GRCm38.cdna.all.fa.gz" 
     shell:
         """
-        curl -L ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz -o {output}
+        curl -L ftp://ftp.ensembl.org/pub/release-101/fasta/mus_musculus/cdna/Mus_musculus.GRCm38.cdna.all.fa.gz -o {output}
         """
 
 rule salmon_index:
-    input: "rnaseq/reference/Homo_sapiens.GRCh38.cdna.all.fa.gz" 
+    input: "rnaseq/reference/Mus_musculus.GRCm38.cdna.all.fa.gz" 
     output: "rnaseq/quant/sc_ensembl_index"
     conda: "rnaseq-env.yml"
     shell:
