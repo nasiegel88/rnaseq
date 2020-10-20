@@ -9,31 +9,6 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Learning objectives:
-
-* Create a gene-level count matrix of Salmon quantification using tximport
-* Perform differential expression of a single factor experiment in DESeq2
-* Perform quality control and exploratory visualization of RNA-seq data in R
-
-
-## Tximeta
-
-We first need to read our data into R. To do that, we will use a package called
-[tximeta](https://bioconductor.org/packages/release/bioc/html/tximeta.html).
-We use tximeta for two main reasons: first, it facilitates summarizing transcript-level counts
-from Salmon to the gene-level for differential expression analysis. Second, tximeta enhances
-incorporates metadata (e.g. transcript locations, transcript and genome source and version, 
-appropriate chromosome lengths, etc) for each transcriptome. This ensures computational reproducibility 
-by attaching critical annotation information to the data object, such that exact quantifications can be 
-reproduced from raw data (all software versions are also attached to the data object).
-
-For more information, see the
-[tximeta vignette](https://bioconductor.org/packages/release/bioc/vignettes/tximeta/inst/doc/tximeta.html)
-
-Since we're working in binder, all of the software is already installed. If you'd
-like to do a similar analysis on your own system, you can use the following 
-installation commands:
-
 ```{r install, eval = F}
 if (!requireNamespace("BiocManager", quietly = TRUE))
  install.packages("BiocManager")
@@ -74,21 +49,21 @@ Define reference files
 
 ```{r}
 indexDir <- file.path("rnaseq", "quant", "sc_ensembl_index")
-fastaFTP <- c("ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz")
-gtfPath <- "ftp://ftp.ensembl.org/pub/release-99/gtf/homo_sapiens/Homo_sapiens.GRCh38.99.gtf.gz"
-gtfLocal <- "human_ref/Homo_sapiens.GRCh38.99.gtf.gz"
-fastaLocal <- "human_ref/Homo_sapiens.GRCh38.cdna.all.fa.gz"
+fastaFTP <- c("ftp://ftp.ensembl.org/pub/release-101/fasta/mus_musculus/cdna/Mus_musculus.GRCm38.cdna.all.fa.gz")
+gtfPath <- " ftp://ftp.ensembl.org/pub/release-101/gtf/mus_musculus/Mus_musculus.GRCm38.101.gtf.gz"
+gtfLocal <- "mouse_ref/Mus_musculus.GRCm38.101.gtf.gz"
+fastaLocal <- "mouse_ref/Mus_musculus.GRCm38.cdna.all.fa.gz"
 ```
 
 Build object
 ```{r, warning = F}
 makeLinkedTxome(indexDir = indexDir,
                 source   = "Ensembl", 
-                organism = "Homo sapiens", 
-                release  = "99", 
+                organism = "Mus musculus", 
+                release  = "101", 
                 fasta    = fastaLocal,
                 gtf      = gtfLocal,
-                genome   = "GCF_000001405.39",
+                genome   = "GCF_000001635.27",
                 write    = FALSE)
 ```
 
