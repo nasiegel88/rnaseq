@@ -5,7 +5,9 @@
 	#SBATCH -n 1                   # one task for this node
 	#SBATCH -c 8                   # eight cores per task
 	#SBATCH -t 8:00:00             # ask for no more than 30 minutes
-	#SBATCH --mem=16gb             # ask for no more than 10 GB of memory
+	#SBATCH --mem=16G             # ask for no more than 10 GB of memory
+    #SBATCH -o jobname-%j.out  # send stdout to outfile
+    #SBATCH -e jobname-%j.err  # send stderr to errfile
 	
 	# initialize conda
 	. ~/miniconda3/etc/profile.d/conda.sh
