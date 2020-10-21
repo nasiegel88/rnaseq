@@ -10,7 +10,7 @@
 #SBATCH -e jobname-%j.err  # send stderr to errfile
 
 # initialize conda
-source . ~/miniconda3/etc/profile.d/conda.sh
+. ~/miniconda3/etc/profile.d/conda.sh
 
 # activate your desired conda environment
 conda activate rnaseq
