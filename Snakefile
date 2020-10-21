@@ -1,5 +1,5 @@
-sample_links = {"ETS_NEO": "https://osf.io/wg48f/download",
-                 "FA_NEO": "https://osf.io/m5paj/download"}
+sample_links = {"ETS_NEO": "https://osf.io/tyce4/download",
+                 "FA_NEO": "https://osf.io/whx3s/download"}
 
 # the sample names are dictionary keys in sample_links. extract them to a list we can use below
 SAMPLES=sample_links.keys()
