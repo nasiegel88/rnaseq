@@ -105,7 +105,7 @@ rule salmon_index:
         "rnaseq-env.yml"
     shell:
         """
-        salmon index --index {output} --transcripts {input} # --type quasi -k 21
+        salmon index --index {output} --transcripts {input} # --type quasi -k 31
         """
 
 ### quantify reads with salmon
