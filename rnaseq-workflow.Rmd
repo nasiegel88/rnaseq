@@ -175,7 +175,7 @@ plotMA(res)
 Il22Ra
 ```{r gene_count}
 # Il22Ra expression
-plotCounts(dds, gene='ENSG00000142677', intgroup="condition")
+plotCounts(dds, gene='ENSMUSG00000037157', intgroup="condition") # mouse il22ra
 ```
 
 ### Normalization & Transformation
