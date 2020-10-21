@@ -26,7 +26,7 @@ set -x
 
 # run the snakemake!
 # Select which snakefile you want to submit
-snakemake -j 100 --use-conda
+snakemake --use-conda
 
 # print out various information about the job
 env | grep SLURM            # Print out values of the current jobs SLURM environment variables
