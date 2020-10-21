@@ -41,7 +41,7 @@ rule download_trimmomatic_adapter_file:
     output: "TruSeq2-SE.fa"
     shell:
         """
-        curl -L https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq2-SE.fa -o {output}
+        curl -L https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq3-SE.fa -o {output}
         """
 
 rule quality_trim:
