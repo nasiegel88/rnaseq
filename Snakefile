@@ -24,7 +24,7 @@ rule download_reads:
 
 rule fastqc_raw:
     input: 
-        expand("rnaseq/raw_data/{sample}.fq.gz", sample=SAMPLES)
+        "rnaseq/raw_data/{sample}.fq.gz"
     output: 
         "rnaseq/raw_data/fastqc/{sample}_fastqc.html"
     params:
@@ -46,7 +46,7 @@ rule download_trimmomatic_adapter_file:
 
 rule quality_trim:
     input: 
-        reads= expand("rnaseq/raw_data/{sample}.fq.gz", sample=SAMPLES),
+        reads= "rnaseq/raw_data/{sample}.fq.gz",
         adapters="TruSeq2-SE.fa",
     output: 
         "rnaseq/quality/{sample}.qc.fq.gz"
@@ -59,7 +59,7 @@ rule quality_trim:
 
 rule fastqc_trimmed:
     input: 
-        expand("rnaseq/quality/{sample}.qc.fq.gz", sample=SAMPLES)
+        "rnaseq/quality/{sample}.qc.fq.gz"
     output: 
         "rnaseq/quality/fastqc/{sample}.qc_fastqc.html"
     params:
