@@ -54,7 +54,7 @@ rule quality_trim:
         "rnaseq-env.yml"
     shell:
         """
-        trimmomatic SE {input.reads} {output} ILLUMINACLIP:{input.adapters}:2:0:15 LEADING:2 TRAILING:2 SLIDINGWINDOW:4:2 MINLEN:25    
+        trimmomatic SE {input.reads} {output} ILLUMINACLIP:{input.adapters}:2:0:15 LEADING:2 TRAILING:2 SLIDINGWINDOW:4:20 MINLEN:35    
         """
 
 rule fastqc_trimmed:
