@@ -9,16 +9,6 @@
 #SBATCH -o jobname-%j.out  # send stdout to outfile
 #SBATCH -e jobname-%j.err  # send stderr to errfile
 
-# initialize conda
-. ~/miniconda3/etc/profile.d/conda.sh
-
-# activate your desired conda environment
-conda activate rnaseq
-
-# go to the directory you ran 'sbatch' in, OR just hardcode it...
-#cd $SLURM_SUBMIT_DIR
-cd ~/rnaseq
-
 # fail on weird errors
 set -o nounset
 set -o errexit
