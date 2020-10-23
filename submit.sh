@@ -3,9 +3,9 @@
 #SBATCH -J ets04               # name for job
 #SBATCH -N 1                   # one "node", or computer
 #SBATCH -n 1                   # one task for this node
-#SBATCH -c 10                   # eight cores per task
-#SBATCH -t 8:00:00             # ask for no more than 30 minutes
-#SBATCH --mem=20G             # ask for no more than 10 GB of memory
+#SBATCH -c 1                   # eight cores per task
+#SBATCH -t 4:00:00             # ask for no more than 30 minutes
+#SBATCH --mem=10G             # ask for no more than 10 GB of memory
 #SBATCH -o jobname-%j.out  # send stdout to outfile
 #SBATCH -e jobname-%j.err  # send stderr to errfile
 
