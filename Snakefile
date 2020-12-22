@@ -14,7 +14,8 @@ rule all:
 # download human rna-seq data from Duclose et al, 2019 study
 rule download_reads:
     output: 
-        "rnaseq/raw_data/{sample}.fq.gz" 
+        r1 = "rnaseq/quality/{sample}_1.qc.fq.gz",
+        r2 = "rnaseq/quality/{sample}_2.qc.fq.gz"
     params:
         download_link = lambda wildcards: sample_links[wildcards.sample]
     shell:
@@ -24,16 +25,19 @@ rule download_reads:
 
 rule fastqc_raw:
     input: 
-        "rnaseq/raw_data/{sample}.fq.gz"
+        r1 = "rnaseq/quality/{sample}_1.qc.fq.gz",
+        r2 = "rnaseq/quality/{sample}_2.qc.fq.gz"
     output: 
-        "rnaseq/raw_data/fastqc/{sample}_fastqc.html"
+        r1_fastq = "rnaseq/raw_data/fastqc/{sample}_1.fastqc.html",
+        r2_fastq = "rnaseq/raw_data/fastqc/{sample}_2-fastqc.html"
     params:
         outdir="rnaseq/raw_data/fastqc"
     conda: 
         "rnaseq-env.yml"
     shell:
         """
-        fastqc {input} --outdir {params.outdir}
+        fastqc {input.r1} --outdir {output.r1_fastq}
+        fastqc {input.r2} --outdir {output.r2_fastq}
         """
 
 ## quality trim reads and assess with fastqc/multiqc
@@ -41,20 +45,26 @@ rule download_trimmomatic_adapter_file:
     output: "TruSeq2-SE.fa"
     shell:
         """
-        curl -L https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq3-SE.fa -o {output}
+        curl -L https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq3-PE-2.fa  -o {output}
         """
 
 rule quality_trim:
     input: 
-        reads= "rnaseq/raw_data/{sample}.fq.gz",
-        adapters="TruSeq2-SE.fa",
+        r1 = "rnaseq/quality/{sample}_1.qc.fq.gz",
+        r2 = "rnaseq/quality/{sample}_2.qc.fq.gz"
+        adapters="TruSeq3-PE-2.fa"
     output: 
         "rnaseq/quality/{sample}.qc.fq.gz"
     conda: 
         "rnaseq-env.yml"
     shell:
         """
-        trimmomatic SE {input.reads} {output} ILLUMINACLIP:{input.adapters}:2:0:15 LEADING:2 TRAILING:2 SLIDINGWINDOW:4:20 MINLEN:35    
+        trimmomatic SE {input.reads} {output} ILLUMINACLIP:{input.adapters}:2:0:15 LEADING:2 TRAILING:2 SLIDINGWINDOW:4:20 MINLEN:35
+        
+        trimmomatic PE -threads 4 {SRR_1056_1.fastq SRR_1056_2.fastq}  \
+              SRR_1056_1.trimmed.fastq SRR_1056_1un.trimmed.fastq \
+              SRR_1056_2.trimmed.fastq SRR_1056_2un.trimmed.fastq \
+              ILLUMINACLIP:SRR_adapters.fa SLIDINGWINDOW:4:2
         """
 
 rule fastqc_trimmed:
@@ -111,6 +121,8 @@ rule salmon_index:
 ### quantify reads with salmon
 rule salmon_quantify:
     input:
+        r1 = "rnaseq/quality/{sample}_1.qc.fq.gz",
+        r2 = "rnaseq/quality/{sample}_2.qc.fq.gz",
         reads="rnaseq/quality/{sample}.qc.fq.gz",
         index_dir="rnaseq/quant/sc_ensembl_index"
     output: "rnaseq/quant/{sample}_quant/quant.sf"
@@ -119,7 +131,11 @@ rule salmon_quantify:
     conda: 
         "rnaseq-env.yml"
     shell:
-        """
+        """ 
+        salmon quant -i {input.reads} -l A -p 6 --validateMappings \
+         --gcBias --numGibbsSamples 20 -o {params.outdir} \
+         -1 {input.r1} -2 {input.r2}
+         
         salmon quant -i {input.index_dir} --libType A -r {input.reads} -o {params.outdir} --seqBias --useVBOpt --validateMappings
         """
 
