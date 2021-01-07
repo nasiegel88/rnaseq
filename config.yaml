@@ -1,0 +1,19 @@
+proj_name: mld
+contact:
+  email: nasiegel@ucdavis.edu
+  person: Noah Siegel
+raw-data: /mnt/c/Users/noahs/projects/rnaseq/raw.dir
+scratch:  /mnt/c/Users/noahs/projects/rnaseq/scratch
+outputDIR: /mnt/c/Users/noahs/projects/rnaseq/output
+metadata: /mnt/c/Users/noahs/projects/rnaseq/metadata.tsv
+ref: /mnt/c/Users/noahs/projects/rnaseq/refs
+
+# Fastq file suffix, following the read pair designation
+suffix: .fastq.gz
+# suffix: _001.fastq.gz
+
+# Read pair designations
+r1_suf: 1
+r2_suf: 2
+#r1_suf: R1
+#r2_suf: R2

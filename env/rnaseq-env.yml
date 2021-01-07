@@ -7,3 +7,4 @@ dependencies:
   - trimmomatic=0.39
   - multiqc=1.8
   - salmon=1.1.0
+  - snakemake =5.5.2
