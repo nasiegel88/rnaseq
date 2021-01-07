@@ -25,6 +25,11 @@ grabseqs sra PRJNA543474
 ```
 * Note this may take a few hours to download
 
+Or do it all at once with the bash script by running the code below
+```
+bash raw.dir/download_data.sh
+```
+
 Next, change the paths in the configurtion file to map from your computer
 
 ```

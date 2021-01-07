@@ -1,10 +1,13 @@
 #!/bin/bash
-## Generatate tar.gz file with all files in current directory
 
-# tar cf file.tar.gz *.gz
+# initialize conda
+. ~/miniconda3/etc/profile.d/conda.sh
 
-# Preliminary sequencing run
-curl -L https://sra-downloadb.be-md.ncbi.nlm.nih.gov/sos3/sra-pub-run-20/SRR9079176/SRR9079176.1 -o file.gz
-gunzip *
+# activate conda environment
+conda activate grabseq
 
-# wget -c https://osf.io/7uzjb/download -O - | tar -xz
+# navigate to the raw.dir directory
+cd raw.dir
+
+# download files
+grabseqs sra PRJNA543474
