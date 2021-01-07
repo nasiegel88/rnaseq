@@ -1,3 +1,65 @@
+# Snakemake file - input raw fastq reads to generate ASVs
+configfile: "config.yaml"
+
+import io 
+import os
+import pandas as pd
+import pathlib
+from snakemake.exceptions import print_exception, WorkflowError
+
+#----SET VARIABLES----#
+PROJ = config["proj_name"]
+INPUTDIR = config["raw-data"]
+SCRATCH = config["scratch"]
+REFERENCE = config["ref"]["human"]
+OUTPUTDIR = config["outputDIR"]
+
+SUF = config["suffix"]
+R1_SUF = str(config["r1_suf"])
+R2_SUF = str(config["r2_suf"])
+
+# Use glob statement to find all samples in 'raw_data' directory
+## Wildcard '{num}' must be equivalent to 'R1' or '1', meaning the read pair designation.
+SAMPLE_LIST,NUMS = glob_wildcards(INPUTDIR + "/{sample}_{num}" + SUF)
+# Unique the output variables from glob_wildcards
+SAMPLE_SET = set(SAMPLE_LIST)
+SET_NUMS = set(NUMS)
+
+# Uncomment to diagnose if snakemake is reading in wildcard variables properly
+#print(SAMPLE_SET)
+#print(SET_NUMS)
+#print(SUF)
+#print(R1_SUF)
+
+# Create final manifest file for qiime2
+MANIFEST = pd.read_csv(config["manifest"]) #Import manifest
+MANIFEST['filename'] = MANIFEST['absolute-filepath'].str.split('/').str[-1] #add new column with only file name
+MANIFEST.rename(columns = {'absolute-filepath':'rawreads-filepath'}, inplace = True)
+PATH_TRIMMED = "trimmed" # name of directory with trimmed reads
+NEWPATH = os.path.join(SCRATCH, PATH_TRIMMED)
+MANIFEST['filename'] = MANIFEST['filename'].str.replace(SUF, "_trim.fastq.gz")
+MANIFEST['absolute-filepath'] = NEWPATH+ "/" + MANIFEST['filename']    
+MANIFEST[['sample-id','absolute-filepath','direction']].set_index('sample-id').to_csv('manifest-trimmed.txt')
+MANIFEST = config["manifest"]
+
+rule all:
+    input:
+        expand("rnaseq/quant/{name}_quant/quant.sf", name=SAMPLES
+        # fastqc output before trimming
+        raw_html = expand("{scratch}/fastqc/{sample}_{num}_fastqc.html", scratch = SCRATCH, sample=SAMPLE_SET, num=SET_NUMS),
+        raw_zip = expand("{scratch}/fastqc/{sample}_{num}_fastqc.zip", scratch = SCRATCH, sample=SAMPLE_SET, num=SET_NUMS),
+        raw_multi_html = SCRATCH + "/fastqc/raw_multiqc.html",
+        raw_multi_stats = SCRATCH + "/fastqc/raw_multiqc_general_stats.txt",
+        # Trimmed data output
+        trimmedData = expand("{scratch}/trimmed/{sample}_{num}_trim.fastq.gz", scratch= SCRATCH, sample=SAMPLE_SET, num=SET_NUMS), 
+        trim_html = expand("{scratch}/fastqc/{sample}_{num}_trimmed_fastqc.html", scratch= SCRATCH, sample=SAMPLE_SET, num=SET_NUMS),
+        raw_qc = expand("{scratch}/fastqc/{sample}_{num}_fastqc.zip", scratch= SCRATCH, sample=SAMPLE_SET, num=SET_NUMS),
+        trim_qc = expand("{scratch}/fastqc/{sample}_{num}_trimmed_fastqc.zip", scratch= SCRATCH, sample=SAMPLE_SET, num=SET_NUMS),
+        trim_multi_html = SCRATCH + "/fastqc/trimmed_multiqc.html", #next change to include proj name
+        trim_multi_stats = SCRATCH + "/fastqc/trimmed_multiqc_general_stats.txt"
+
+
+
 
 sample_links = {"GSM3773108": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079176/1061_TGACCA_combined_R2_001.fastq.gz",
                 "GSM3773109": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079177/1067_ACAGTG_combined_R2_001.fastq.gz",
@@ -15,14 +77,6 @@ sample_links = {"GSM3773108": "https://sra-pub-src-2.s3.amazonaws.com/SRR9079176
 # the sample names are dictionary keys in sample_links. extract them to a list we can use below
 SAMPLES=sample_links.keys()
 
-rule all:
-    input:
-        # create a new filename for every entry in SAMPLES,
-        # replacing {name} with each entry.
-        expand("rnaseq/quant/{name}_quant/quant.sf", name=SAMPLES),
-        "rnaseq/fastqc/multiqc_report.html",
-
-# download human rna-seq data from Duclose et al, 2019 study
 rule download_reads:
     output: "rnaseq/raw_data/{sample}.fq.gz" 
     params:
@@ -32,16 +86,17 @@ rule download_reads:
         curl -L {params.download_link} -o {output}
         """
 
-rule fastqc_raw:
-    input: "rnaseq/raw_data/{sample}.fq.gz"
-    output: "rnaseq/raw_data/fastqc/{sample}_fastqc.html"
-    params:
-        outdir="rnaseq/raw_data/fastqc"
-    conda: "rnaseq-env.yml"
-    shell:
-        """
-        fastqc {input} --outdir {params.outdir}
-        """
+rule fastqc:
+    input:    
+        INPUTDIR + "/{sample}_{num}" + SUF
+    output:
+        html = SCRATCH + "/fastqc/{sample}_{num}_fastqc.html",
+        zip = SCRATCH + "/fastqc/{sample}_{num}_fastqc.zip"
+    params: ""
+    log:
+        SCRATCH + "/logs/fastqc/{sample}_{num}.log"
+    wrapper:
+        "0.35.2/bio/fastqc
 
 ## quality trim reads and assess with fastqc/multiqc
 rule download_trimmomatic_adapter_file:
@@ -51,41 +106,60 @@ rule download_trimmomatic_adapter_file:
         curl -L https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq2-SE.fa -o {output}
         """
 
-rule quality_trim:
-    input: 
-        reads="rnaseq/raw_data/{sample}.fq.gz",
-        adapters="TruSeq2-SE.fa",
-    output: "rnaseq/quality/{sample}.qc.fq.gz"
-    conda: "rnaseq-env.yml"
-    shell:
-        """
-        trimmomatic SE {input.reads} {output} ILLUMINACLIP:{input.adapters}:2:0:15 LEADING:2 TRAILING:2 SLIDINGWINDOW:4:2 MINLEN:25    
-        """
-
-rule fastqc_trimmed:
-    input: "rnaseq/quality/{sample}.qc.fq.gz"
-    output: "rnaseq/quality/fastqc/{sample}.qc_fastqc.html"
+rule trimmomatic_pe:
+    input:
+        r1 = INPUTDIR + "/{sample}_" + R1_SUF + SUF,
+        r2 = INPUTDIR + "/{sample}_" + R2_SUF + SUF
+    output:
+        r1 = SCRATCH + "/trimmed/{sample}_" + R1_SUF + "_trim.fastq.gz",
+        r2 = SCRATCH + "/trimmed/{sample}_" + R2_SUF + "_trim.fastq.gz",
+        # reads where trimming entirely removed the mate
+        r1_unpaired = SCRATCH + "/trimmed/{sample}_1.unpaired.fastq.gz",
+        r2_unpaired = SCRATCH + "/trimmed/{sample}_2.unpaired.fastq.gz"
+    log:
+        SCRATCH + "/trimmed/logs/trimmomatic/{sample}.log"
     params:
-        outdir="rnaseq/quality/fastqc"
-    conda: "rnaseq-env.yml"
-    shell:
-        """
-        fastqc {input} --outdir {params.outdir}
-        """
+        trimmer = ["LEADING:2", "TRAILING:2", "SLIDINGWINDOW:4:2", "MINLEN:25"],
+        extra = ""
+    wrapper:
+        "0.35.2/bio/trimmomatic/pe"
+
+rule fastqc_trim:
+  input:
+    SCRATCH + "/trimmed/{sample}_{num}_trim.fastq.gz"
+  output:
+    html = SCRATCH + "/fastqc/{sample}_{num}_trimmed_fastqc.html",
+    zip = SCRATCH + "/fastqc/{sample}_{num}_trimmed_fastqc.zip"
+  params: ""
+  log:
+    SCRATCH + "/logs/fastqc/{sample}_{num}_trimmed.log"
+  wrapper:
+    "0.35.2/bio/fastqc"
 
 rule multiqc:
-    input: 
-        raw=expand("rnaseq/raw_data/fastqc/{sample}_fastqc.html", sample=SAMPLES),
-        trimmed=expand("rnaseq/quality/fastqc/{sample}.qc_fastqc.html", sample=SAMPLES)
-    output: "rnaseq/fastqc/multiqc_report.html"
-    params:
-        raw_dir="rnaseq/raw_data/fastqc",
-        trimmed_dir="rnaseq/raw_data/fastqc",
-    conda: "rnaseq-env.yml"
-    shell:
-        """
-        multiqc {params.raw_dir} {params.trimmed_dir} --filename {output}
-        """
+  input:
+    raw_qc = expand("{scratch}/fastqc/{sample}_{num}_fastqc.zip", scratch= SCRATCH, sample=SAMPLE_SET, num=SET_NUMS),
+    trim_qc = expand("{scratch}/fastqc/{sample}_{num}_trimmed_fastqc.zip", scratch= SCRATCH, sample=SAMPLE_SET, num=SET_NUMS)
+  output:
+    raw_multi_html = SCRATCH + "/fastqc/raw_multiqc.html", 
+    raw_multi_stats = SCRATCH + "/fastqc/raw_multiqc_general_stats.txt",
+    trim_multi_html = SCRATCH + "/fastqc/trimmed_multiqc.html", 
+    trim_multi_stats = SCRATCH + "/fastqc/trimmed_multiqc_general_stats.txt"
+
+  conda:
+   "../envs/multiqc-env.yaml"
+  shell: 
+    """
+    multiqc -n multiqc.html {input.raw_qc} #run multiqc
+    mv multiqc.html {output.raw_multi_html} #rename html
+    mv multiqc_data/multiqc_general_stats.txt {output.raw_multi_stats} #move and rename stats
+    rm -rf multiqc_data #clean-up
+    #repeat for trimmed data
+    multiqc -n multiqc.html {input.trim_qc} #run multiqc
+    mv multiqc.html {output.trim_multi_html} #rename html
+    mv multiqc_data/multiqc_general_stats.txt {output.trim_multi_stats} #move and rename stats
+    rm -rf multiqc_data #clean-up
+    """ 
 
 ### download and index the human transcriptome ###
 rule download_human_transcriptome:
@@ -96,9 +170,10 @@ rule download_human_transcriptome:
         """
 
 rule salmon_index:
-    input: "rnaseq/reference/Homo_sapiens.GRCh38.cdna.all.fa.gz" 
+    input:
+        ref = REFERENCE + "Homo_sapiens.GRCh38.cdna.all.fa.gz" 
     output: "rnaseq/quant/sc_ensembl_index"
-    conda: "rnaseq-env.yml"
+    conda: "env/rnaseq-env.yml"
     shell:
         """
         salmon index --index {output} --transcripts {input} # --type quasi -k 21
@@ -112,9 +187,23 @@ rule salmon_quantify:
     output: "rnaseq/quant/{sample}_quant/quant.sf"
     params:
         outdir= lambda wildcards: "rnaseq/quant/" + wildcards.sample + "_quant"
-    conda: "rnaseq-env.yml"
+    conda: "env/rnaseq-env.yml"
     shell:
         """
         salmon quant -i {input.index_dir} --libType A -r {input.reads} -o {params.outdir} --seqBias --useVBOpt --validateMappings
         """
+        
 
+rule salmon_quant:
+    input:
+        r1 = SCRATCH + "/trimmed/{sample}_" + R1_SUF + "_trim.fastq.gz",
+        r2 = SCRATCH + "/trimmed/{sample}_" + R2_SUF + "_trim.fastq.gz",
+        index_dir = "rnaseq/quant/sc_ensembl_index" 
+    output: "rnaseq/output/{sample}_quant/quant.sf"
+    params:
+        outdir= lambda wildcards: "rnaseq/output/" + wildcards.sample + "_quant"
+    conda: "env/rnaseq-env.yml"
+    shell:
+        "{SALMON} quant -i {input.index_dir} -l A -p 6 --validateMappings \
+         --gcBias --numGibbsSamples 20 -o {params.dir} \
+         -1 {input.r1} -2 {input.r2}"
