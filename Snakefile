@@ -14,6 +14,14 @@ SCRATCH = config["scratch"]
 REFERENCE = config["ref"]
 OUTPUTDIR = config["outputDIR"]
 
+# Adapters
+ADAPTER = config['seq']['name']
+SEQUENCE = config['seq']['trueseq']
+
+# Organsim
+TRANSCRIPTOME = config['transcriptome']['human']
+SPECIES = config['species']['human']
+
 SUF = config["suffix"]
 R1_SUF = str(config["r1_suf"])
 R2_SUF = str(config["r2_suf"])
@@ -56,10 +64,11 @@ rule fastqc:
 
 ## quality trim reads and assess with fastqc/multiqc
 rule download_trimmomatic_adapter_file:
-    output: "TruSeq2-PE.fa"
+    input: SEQUENCE
+    output: ADAPTER
     shell:
         """
-        curl -L https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq2-PE.fa -o {output}
+        {input} -o {output}
         """
 
 rule trimmomatic_pe:
@@ -114,17 +123,17 @@ rule multiqc:
         rm -rf multiqc_data #clean-up
         """ 
 
-### download and index the human transcriptome ###
-rule download_human_transcriptome:
-    output: "rnaseq/refs/Homo_sapiens.GRCh38.cdna.all.fa.gz" 
+rule download_transcriptome:
+    input: TRANSCRIPTOME
+    output: SPECIES
     shell:
         """
-        curl -L ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz -o {output}
+        {input} -o {output}
         """
 
 rule salmon_index:
      input:
-         ref = REFERENCE + "/Homo_sapiens.GRCh38.cdna.all.fa.gz" 
+         ref = REFERENCE + SPECIES
      output: "rnaseq/quant/sc_ensembl_index"
      conda: "env/rnaseq-env.yml"
      shell:

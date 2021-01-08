@@ -1,4 +1,5 @@
 proj_name: mld
+
 contact:
   email: nasiegel@ucdavis.edu
   person: Noah Siegel
@@ -6,7 +7,22 @@ raw-data: /mnt/c/Users/noahs/projects/rnaseq/raw.dir
 scratch:  /mnt/c/Users/noahs/projects/rnaseq/scratch
 outputDIR: /mnt/c/Users/noahs/projects/rnaseq/output
 metadata: /mnt/c/Users/noahs/projects/rnaseq/metadata.tsv
-ref: /mnt/c/Users/noahs/projects/rnaseq/refs
+ref: /mnt/c/Users/noahs/projects/rnaseq/refs/
+
+# Organism
+species:
+  mouse: Mus_musculus.GRCm38.cdna.all.fa.gz
+  human: Homo_sapiens.GRCh38.cdna.all.fa.gz
+
+# Adapters
+seq:
+  name: TruSeq2-PE.fa
+  trueseq: curl -L https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq2-PE.fa
+
+# downloads
+transcriptome:
+  human: curl -L ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz
+  mouse: curl -L ftp://ftp.ensembl.org/pub/release-102/fasta/mus_musculus/cdna/Mus_musculus.GRCm38.cdna.all.fa.gz
 
 # Fastq file suffix, following the read pair designation
 suffix: .fastq.gz
