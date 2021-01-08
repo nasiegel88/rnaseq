@@ -1,4 +1,4 @@
-# RNAseq pipeline for paired-sequencing
+# Bulk RNAseq pipeline for paired-end reads
 last updated 2020-01-07
 
 To do:
