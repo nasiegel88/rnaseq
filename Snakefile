@@ -124,11 +124,10 @@ rule multiqc:
         """ 
 
 rule download_transcriptome:
-    input: TRANSCRIPTOME
     output: REFERENCE + SPECIES
     shell:
         """
-        curl -L {input} -o {output}
+        curl -L {TRANSCRIPTOME} -o {output}
         """
 
 rule salmon_index:
