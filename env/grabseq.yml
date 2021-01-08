@@ -1,4 +1,6 @@
 channels:
-  - louiejtaylor 
+  - louiejtaylor
+  - bioconda 
+  - conda-forge 
 dependencies:
   -  grabseqs=0.7.0 
