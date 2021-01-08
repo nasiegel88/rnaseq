@@ -85,7 +85,8 @@ rule trimmomatic_pe:
         SCRATCH + "/trimmed/logs/trimmomatic/{sample}.log"
     shell:
         """
-        trimmomatic PE -phred33 {input.r1} {input.r1} {output.r1} {output.r1_unpaired} {output.r2} {output.r2_unpaired} ILLUMINACLIP:{input.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 
+        trimmomatic PE -phred33 {input.r1} {input.r1} {output.r1} {output.r1_unpaired} {output.r2} {output.r2_unpaired} \
+        ILLUMINACLIP:{input.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 
         """
 
 rule fastqc_trim:
