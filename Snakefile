@@ -128,7 +128,7 @@ rule download_transcriptome:
     output: REFERENCE + SPECIES
     shell:
         """
-        {input} -o {output}
+        curl -L {input} -o {output}
         """
 
 rule salmon_index:
