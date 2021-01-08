@@ -125,7 +125,7 @@ rule multiqc:
 
 rule download_transcriptome:
     input: TRANSCRIPTOME
-    output: SPECIES
+    output: REFERENCE + SPECIES
     shell:
         """
         {input} -o {output}
