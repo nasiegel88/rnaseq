@@ -17,7 +17,7 @@ species:
 # Adapters
 seq:
   name: TruSeq2-PE.fa
-  trueseq: curl -L https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq2-PE.fa
+  trueseq: https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq2-PE.fa
 
 # Downloads
 transcriptome:

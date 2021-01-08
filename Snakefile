@@ -64,17 +64,17 @@ rule fastqc:
 
 ## quality trim reads and assess with fastqc/multiqc
 rule download_trimmomatic_adapter_file:
-    input: SEQUENCE
-    output: ADAPTER
+    output: REFERENCE + ADAPTER
     shell:
         """
-        {input} -o {output}
+        curl -L {SEQUENCE} -o {output}
         """
 
 rule trimmomatic_pe:
     input:
         r1 = INPUTDIR + "/{sample}_" + R1_SUF + SUF,
-        r2 = INPUTDIR + "/{sample}_" + R2_SUF + SUF
+        r2 = INPUTDIR + "/{sample}_" + R2_SUF + SUF,
+        adapters = REFERENCE + ADAPTER
     output:
         r1 = SCRATCH + "/trimmed/{sample}_" + R1_SUF + "_trim.fastq.gz",
         r2 = SCRATCH + "/trimmed/{sample}_" + R2_SUF + "_trim.fastq.gz",
@@ -83,11 +83,10 @@ rule trimmomatic_pe:
         r2_unpaired = SCRATCH + "/trimmed/{sample}_2.unpaired.fastq.gz"
     log:
         SCRATCH + "/trimmed/logs/trimmomatic/{sample}.log"
-    params:
-        trimmer = ["LEADING:2", "TRAILING:2", "SLIDINGWINDOW:4:2", "MINLEN:25"],
-        extra = ""
-    wrapper:
-        "0.35.2/bio/trimmomatic/pe"
+    shell:
+        """
+        trimmomatic PE -phred33 {input.r1} {input.r1} {output.r1} {output.r1_unpaired} {output.r2} {output.r2_unpaired} ILLUMINACLIP:{input.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 
+        """
 
 rule fastqc_trim:
   input:
@@ -95,11 +94,14 @@ rule fastqc_trim:
   output:
     html = SCRATCH + "/fastqc/{sample}_{num}_trimmed_fastqc.html",
     zip = SCRATCH + "/fastqc/{sample}_{num}_trimmed_fastqc.zip"
-  params: ""
+  params: 
+    outdir = SCRATCH + "/fastqc/"
   log:
     SCRATCH + "/logs/fastqc/{sample}_{num}_trimmed.log"
-  wrapper:
-    "0.35.2/bio/fastqc"
+  shell:
+        """
+        fastqc {input} --outdir {params.outdir}
+        """
 
 rule multiqc:
     input:
