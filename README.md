@@ -1,6 +1,8 @@
 # Bulk RNAseq pipeline for paired-end reads
 last updated 2020-01-07
 
+Author: Noah Siegel
+
 To do:
 - script to generate csv to import quant.sf files for analysis in R
 
