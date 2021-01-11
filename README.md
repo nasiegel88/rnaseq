@@ -20,7 +20,7 @@ conda env create -n rnaseq -f env/rnaseq-env.yml
 Download practice data by first installing and activating the ```grabseq``` env
 ```
 conda env create -n grabseq -f env/grabseq.yml
-# download data from Duclos et al., 2019
+# download data from [Duclos et al., 2019](https://advances.sciencemag.org/content/5/12/eaaw3413)
 # switch to the raw data directory within rnaseq
 cd raw.dir
 grabseqs sra PRJNA543474
