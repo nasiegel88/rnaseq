@@ -1,4 +1,4 @@
-# Snakemake file - input raw fastq reads to generate ASVs
+# Snakemake file - input raw reads to generate quant files for analysis in R
 configfile: "config.yaml"
 
 import io 
@@ -35,7 +35,7 @@ SET_NUMS = set(NUMS)
 
 rule all:
     input:
-        expand("rnaseq/output/{name}_quant/quant.sf", name=SAMPLE_LIST),
+        expand("output/{name}_quant/quant.sf", name=SAMPLE_LIST),
         # fastqc output before trimming
         raw_html = expand("{scratch}/fastqc/{sample}_{num}_fastqc.html", scratch = SCRATCH, sample=SAMPLE_SET, num=SET_NUMS),
         raw_zip = expand("{scratch}/fastqc/{sample}_{num}_fastqc.zip", scratch = SCRATCH, sample=SAMPLE_SET, num=SET_NUMS),
@@ -55,12 +55,14 @@ rule fastqc:
     output:
         html = SCRATCH + "/fastqc/{sample}_{num}_fastqc.html",
         zip = SCRATCH + "/fastqc/{sample}_{num}_fastqc.zip"
-    params:
-        outdir= SCRATCH + "/fastqc"
-    shell:
-        """
-        fastqc {input} --outdir {params.outdir}
-        """
+    params:""
+#        outdir= SCRATCH + "/fastqc"
+    wrapper:
+        "0.35.2/bio/fastqc"
+ #   shell:
+ #       """
+ #       fastqc {input} --outdir {params.outdir}
+ #       """
 
 ## quality trim reads and assess with fastqc/multiqc
 rule download_trimmomatic_adapter_file:
@@ -85,24 +87,28 @@ rule trimmomatic_pe:
         SCRATCH + "/trimmed/logs/trimmomatic/{sample}.log"
     shell:
         """
-        trimmomatic PE -phred33 {input.r1} {input.r1} {output.r1} {output.r1_unpaired} {output.r2} {output.r2_unpaired} \
-        ILLUMINACLIP:{input.adapters}:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 
+        trimmomatic PE {input.r1} {input.r2} \
+        {output.r1} {output.r1_unpaired} \
+        {output.r2} {output.r2_unpaired} \
+        ILLUMINACLIP:{input.adapters}:2:0:15 LEADING:2 TRAILING:2 \
+        SLIDINGWINDOW:4:2 MINLEN:25 
         """
 
 rule fastqc_trim:
-  input:
-    SCRATCH + "/trimmed/{sample}_{num}_trim.fastq.gz"
+  input: SCRATCH + "/trimmed/{sample}_{num}_trim.fastq.gz"
   output:
     html = SCRATCH + "/fastqc/{sample}_{num}_trimmed_fastqc.html",
     zip = SCRATCH + "/fastqc/{sample}_{num}_trimmed_fastqc.zip"
-  params: 
-    outdir = SCRATCH + "/fastqc/"
+  params: ""
+#    outdir= SCRATCH + "/fastqc/"
   log:
     SCRATCH + "/logs/fastqc/{sample}_{num}_trimmed.log"
-  shell:
-        """
-        fastqc {input} --outdir {params.outdir}
-        """
+  wrapper:
+      "0.35.2/bio/fastqc"
+#  shell:
+#        """
+#        fastqc {input} --outdir {params.outdir}
+#        """
 
 rule multiqc:
     input:
@@ -136,22 +142,26 @@ rule download_transcriptome:
 rule salmon_index:
      input:
          ref = REFERENCE + SPECIES
-     output: "rnaseq/quant/sc_ensembl_index"
+     output: directory("output/quant/sc_ensembl_index")
      conda: "env/rnaseq-env.yml"
      shell:
          """
-         salmon index --index {output} --transcripts {input} # --type quasi -k 21
+         salmon index --index {output} --transcripts {input} # --type quasi -k 31
          """
 rule salmon_quant:
     input:
         r1 = SCRATCH + "/trimmed/{sample}_" + R1_SUF + "_trim.fastq.gz",
         r2 = SCRATCH + "/trimmed/{sample}_" + R2_SUF + "_trim.fastq.gz",
-        index_dir = "rnaseq/quant/sc_ensembl_index" 
-    output: "rnaseq/output/{sample}_quant/quant.sf"
+        index_dir = "output/quant/sc_ensembl_index" 
+    output: "output/{sample}_quant/quant.sf"
     params:
-        outdir= lambda wildcards: "rnaseq/output/" + wildcards.sample + "_quant"
-    conda: "env/rnaseq-env.yml"
+        outdir= lambda wildcards: "output/" + wildcards.sample + "_quant"
     shell:
-        "salmon quant -i {input.index_dir} -l A -p 6 --validateMappings \
-         --gcBias --numGibbsSamples 20 -o {params.outdir} \
-         -1 {input.r1} -2 {input.r2}"
+        """
+        salmon quant -i {input.index_dir} -l A -p 6 \
+         --validateMappings \
+         --gcBias \
+         --numGibbsSamples 20 \
+         --output {params.outdir} \
+         -1 {input.r1} -2 {input.r2}
+        """
