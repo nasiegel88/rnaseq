@@ -1,0 +1,17 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - fastqc=0.11.9
+  - trimmomatic=0.39
+  - multiqc=1.9
+  - salmon=1.4.0
+  - snakemake=5.5.2
+
+## install conda env
+# conda env create --name rnaseq --file env/rnaseq.yml
+# conda activate rnaseq
+
+## uninstall conda env
+# conda env remove -n rnaseq

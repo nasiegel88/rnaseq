@@ -56,13 +56,8 @@ rule fastqc:
         html = SCRATCH + "/fastqc/{sample}_{num}_fastqc.html",
         zip = SCRATCH + "/fastqc/{sample}_{num}_fastqc.zip"
     params:""
-#        outdir= SCRATCH + "/fastqc"
     wrapper:
         "0.35.2/bio/fastqc"
- #   shell:
- #       """
- #       fastqc {input} --outdir {params.outdir}
- #       """
 
 ## quality trim reads and assess with fastqc/multiqc
 rule download_trimmomatic_adapter_file:
@@ -100,15 +95,10 @@ rule fastqc_trim:
     html = SCRATCH + "/fastqc/{sample}_{num}_trimmed_fastqc.html",
     zip = SCRATCH + "/fastqc/{sample}_{num}_trimmed_fastqc.zip"
   params: ""
-#    outdir= SCRATCH + "/fastqc/"
   log:
     SCRATCH + "/logs/fastqc/{sample}_{num}_trimmed.log"
   wrapper:
       "0.35.2/bio/fastqc"
-#  shell:
-#        """
-#        fastqc {input} --outdir {params.outdir}
-#        """
 
 rule multiqc:
     input:
