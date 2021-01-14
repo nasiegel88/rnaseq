@@ -11,7 +11,7 @@ cd rnaseq
 
 Create conda environment
 ```
-conda env create -n rnaseq -f env/rnaseq-env.yml
+conda env create -n rnaseq -f env/rnaseq.yml
 ```
 This environment has everything needed to run snakemake, perform quality control of reads, and quantify reads based on what matches a reference genome.
 
