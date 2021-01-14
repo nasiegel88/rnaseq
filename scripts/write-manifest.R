@@ -1,6 +1,5 @@
 # Required libraries
 library(reshape2);library(tidyverse)
-setwd(getwd())
 
 # Import all files in currect directory
 paths <- as.data.frame(list.files(pattern = "_quant", full.names = TRUE))
