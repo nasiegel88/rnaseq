@@ -1,0 +1,16 @@
+channels:
+  - conda-forge
+dependencies:
+  - r-base=4.0.3
+  - r-reshape2=1.4.4
+  - r-tidyverse=1.3.0
+
+## install conda env
+# conda env create --name r-env --file env/r-env.yml
+# conda activate r-env
+
+## uninstall conda env
+# conda env remove -n r-env  
+  
+  
+  

@@ -1,6 +1,6 @@
-
 # Required libraries
 library(reshape2);library(tidyverse)
+setwd(getwd())
 
 # Import all files in currect directory
 paths <- as.data.frame(list.files(pattern = "_quant", full.names = TRUE))
@@ -11,7 +11,7 @@ path_to_files <- getwd()
 paths$PATH <- path_to_files
 
 # Extract sample ID
-paths_run <- paths %>% mutate(SAMPLEID = str_replace(QUANT, ""))
+paths_run <- paths %>% mutate(SAMPLEID = str_replace(QUANT, "_quant", ""))
 ## ^See wildcard options on this line to modify how R script pulls out your sample IDs from fastq files
 
 paths_run$SAMPLEID <- gsub("./","", paths_run$SAMPLEID)
