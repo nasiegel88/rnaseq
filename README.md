@@ -1,10 +1,7 @@
-# Bulk RNAseq pipeline for paired-end reads
+# Bulk RNAseq pipeline for paired-end and single-end reads
 last updated 2020-01-07
 
 Author: Noah Siegel
-
-To do:
-- script to generate csv to import quant.sf files for analysis in R
 
 Clone repo
 ```
@@ -14,25 +11,26 @@ cd rnaseq
 
 Create conda environment
 ```
-conda env create -n rnaseq -f env/rnaseq-env.yml
+conda env create -n rnaseq -f env/rnaseq.yml
 ```
+This environment has everything needed to run snakemake, perform quality control of reads, and quantify reads based on what matches a reference genome.
 
-Download practice data by first installing and activating the ```grabseq``` env
+Download practice data from [Himes at et al., 2014](https://pubmed.ncbi.nlm.nih.gov/24926665/) by first installing and activating the ```grabseq``` env. Note, only do this for paired sequencing data. If you want to test out the snakefiles for single-end sequencing you either need to find different practice data or simply delete the reverse reads from Himes et al., 2014 by using something like ```rm *_2.fastq.gz``` in the raw.dir directory.
 ```
 conda env create -n grabseq -f env/grabseq.yml
-# download data from [Duclos et al., 2019](https://advances.sciencemag.org/content/5/12/eaaw3413)
+conda activate grabseq
 # switch to the raw data directory within rnaseq
 cd raw.dir
-grabseqs sra PRJNA543474
+grabseqs sra PRJNA229998
 ```
 * Note this may take a few hours to download
 
-Or do it all at once with the bash script by running the code below
+Or do it all at once with the bash script by running the code below...
 ```
 bash raw.dir/download_data.sh
 ```
 
-Next, change the paths in the configurtion file to map from your computer. I am only using TruSeq-PE adapter but it possible to run this workflow by substituting for different adapter sequences.
+Next, change the paths in the configurtion file to map to your computer. I am only using TruSeq-PE adapter but it possible to run this workflow by substituting for different adapter sequences. Currently, the configuration file supports both paired and single end TruSeq adapters
 
 ```
 proj_name: name
@@ -52,13 +50,16 @@ species:
 
 # Adapters
 seq:
-  name: TruSeq2-PE.fa
-  trueseq: curl -L https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq2-PE.fa
+  PE: TruSeq2-PE.fa
+  trueseq-pe: https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq2-PE.fa
+  SE: TruSeq2-SE.fa
+  trueseq-se: https://raw.githubusercontent.com/timflutre/trimmomatic/master/adapters/TruSeq2-SE.fa
 
 # Downloads
 transcriptome:
-  human: curl -L ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz
-  mouse: curl -L ftp://ftp.ensembl.org/pub/release-102/fasta/mus_musculus/cdna/Mus_musculus.GRCm38.cdna.all.fa.gz
+  human: ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz
+  mouse: ftp://ftp.ensembl.org/pub/release-102/fasta/mus_musculus/cdna/Mus_musculus.GRCm38.cdna.all.fa.gz
+
 
 # Fastq file suffix, following the read pair designation
 suffix: .fastq.gz
@@ -90,12 +91,20 @@ REFERENCE = config["ref"]
 OUTPUTDIR = config["outputDIR"]
 ```
 
-If using TruSeq adapters remove dont't change anything here.
+Follow variable assigments based on the kind of reads you have. 
 
+Paired end reads:
 ```
 # Adapters
-ADAPTER = config['seq']['name']
-SEQUENCE = config['seq']['trueseq']
+ADAPTER = config['seq']['PE']
+SEQUENCE = config['seq']['trueseq-pe']
+```
+
+Single end reads:
+```
+# Adapters
+SE_ADAPTER = config['seq']['SE']
+SE_SEQUENCE = config['seq']['trueseq-se']
 ```
 
 Specify which organsim transcriptome you want to align too. Currently mouse and human are the only transcriptomes listed in the config.yml. Different reference transcriptiome can be found at the [enembl](https://uswest.ensembl.org/info/data/ftp/index.html) database.
@@ -105,3 +114,19 @@ Specify which organsim transcriptome you want to align too. Currently mouse and 
 TRANSCRIPTOME = config['transcriptome']['human']
 SPECIES = config['species']['human']
 ```
+
+If working with mouse sample adjusted the above code to...
+
+```
+# Organisim
+TRANSCRIPTOME = config['transcriptome']['mouse']
+SPECIES = config['species']['mouse']
+```
+
+Once every thing is set up activate the environment using,
+```conda activate rnaseq```
+You are ready to run Snakemake.
+
+Paired-end: ```snakemake -s Snakefile-paired.smk -j 2```
+
+Single-end: ```snakemake -s Snakefile-single.smk -j 2```
