@@ -15,8 +15,8 @@ REFERENCE = config["ref"]
 OUTPUTDIR = config["outputDIR"]
 
 # Adapters
-ADAPTER = config['seq']['name']
-SEQUENCE = config['seq']['trueseq']
+PE_ADAPTER = config['seq']['PE']
+PE_SEQUENCE = config['seq']['trueseq-pe']
 
 # Organsim
 TRANSCRIPTOME = config['transcriptome']['human']
@@ -59,19 +59,18 @@ rule fastqc:
     wrapper:
         "0.35.2/bio/fastqc"
 
-## quality trim reads and assess with fastqc/multiqc
 rule download_trimmomatic_adapter_file:
-    output: REFERENCE + ADAPTER
+    output: REFERENCE + PE_ADAPTER
     shell:
         """
-        curl -L {SEQUENCE} -o {output}
+        curl -L {PE_SEQUENCE} -o {output}
         """
 
 rule trimmomatic_pe:
     input:
         r1 = INPUTDIR + "/{sample}_" + R1_SUF + SUF,
         r2 = INPUTDIR + "/{sample}_" + R2_SUF + SUF,
-        adapters = REFERENCE + ADAPTER
+        adapters = REFERENCE + PE_ADAPTER
     output:
         r1 = SCRATCH + "/trimmed/{sample}_" + R1_SUF + "_trim.fastq.gz",
         r2 = SCRATCH + "/trimmed/{sample}_" + R2_SUF + "_trim.fastq.gz",
@@ -133,7 +132,6 @@ rule salmon_index:
      input:
          ref = REFERENCE + SPECIES
      output: directory("output/quant/sc_ensembl_index")
-     conda: "env/rnaseq-env.yml"
      shell:
          """
          salmon index --index {output} --transcripts {input} # --type quasi -k 31

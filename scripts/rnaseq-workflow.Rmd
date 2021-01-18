@@ -1,39 +1,13 @@
 ---
 title: "Differential Expression and Visualization in R"
 author: 
-  - Taylor Reiter
-  - N. Tessa Pierce
+  - Noah Siegel
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-## Learning objectives:
-
-* Create a gene-level count matrix of Salmon quantification using tximport
-* Perform differential expression of a single factor experiment in DESeq2
-* Perform quality control and exploratory visualization of RNA-seq data in R
-
-
-## Tximeta
-
-We first need to read our data into R. To do that, we will use a package called
-[tximeta](https://bioconductor.org/packages/release/bioc/html/tximeta.html).
-We use tximeta for two main reasons: first, it facilitates summarizing transcript-level counts
-from Salmon to the gene-level for differential expression analysis. Second, tximeta enhances
-incorporates metadata (e.g. transcript locations, transcript and genome source and version, 
-appropriate chromosome lengths, etc) for each transcriptome. This ensures computational reproducibility 
-by attaching critical annotation information to the data object, such that exact quantifications can be 
-reproduced from raw data (all software versions are also attached to the data object).
-
-For more information, see the
-[tximeta vignette](https://bioconductor.org/packages/release/bioc/vignettes/tximeta/inst/doc/tximeta.html)
-
-Since we're working in binder, all of the software is already installed. If you'd
-like to do a similar analysis on your own system, you can use the following 
-installation commands:
 
 ```{r install, eval = F}
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -48,6 +22,7 @@ install.packages("pheatmap")
 
 ```{r library, message=FALSE}
 library(SummarizedExperiment)
+library(stringr)
 library(tximeta)
 library(DESeq2)
 library(dplyr)
@@ -60,13 +35,8 @@ library(pheatmap)
 library(kableExtra)
 ```
 
-This lesson is executed in binder, so the relevant paths should work if we're
-running this from within the 2020-ggg-201b-rnaseq folder.
-
-First let's read in our `rnaseq_samples.csv` file. This file designates the names
-of our samples, their conditions, and the path to their quantification files. 
-```{r}
-samples <- read_csv("rnaseq_samples.csv")
+```{r read in samples}
+samples <- read_csv("../output/rnaseq_samples.csv")
 ```
 
 ```{r, echo = F}
@@ -74,19 +44,15 @@ kableExtra::kable(samples) %>%
   kable_styling()
 ```
 
-
-Next we need to define our reference files. We will use ensembl files, as this
-simplifies the way we interact with this information. 
-
-```{r}
-indexDir <- file.path("rnaseq", "quant", "sc_ensembl_index")
+```{r define ref files}
+indexDir <- file.path(getwd(), "output", "quant", "sc_ensembl_index")
+indexDir <- str_remove(indexDir, "scripts/")
 fastaFTP <- c("ftp://ftp.ensembl.org/pub/release-99/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz")
 gtfPath <- "ftp://ftp.ensembl.org/pub/release-99/gtf/homo_sapiens/Homo_sapiens.GRCh38.99.gtf.gz"
 gtfLocal <- "human_ref/Homo_sapiens.GRCh38.99.gtf.gz"
 fastaLocal <- "human_ref/Homo_sapiens.GRCh38.cdna.all.fa.gz"
 ```
 
-With this information set, we can now build an object that saves this information.
 ```{r, warning = F}
 makeLinkedTxome(indexDir = indexDir,
                 source   = "Ensembl", 
@@ -98,26 +64,24 @@ makeLinkedTxome(indexDir = indexDir,
                 write    = FALSE)
 ```
 
-To create an `se` object for using our `tximeta` information:
 ```{r, warning = F}
+# create se object
 se <- tximeta(samples)
 ```
 
-To look at our `se` object, we can use the following commands:
+
 ```{r, eval = F, eval = F}
+# view se object using...
 colData(se)
 assayNames(se)
 rowRanges(se)
 seqinfo(se)
 ```
 
-And to summarize to gene level, we can use `summarizeToGene()`.
-
 ```{r stg}
+# summarize object to gene level
 gse <- summarizeToGene(se)
 ```
-
-And now let's take a look at the data
 
 ```{r, eval = F}
 rowRanges(gse)
