@@ -69,13 +69,11 @@ rule trimmmomatic_se:
         reads= INPUTDIR + "/{sample}_" + R1_SUF + SUF,
         adapters= REFERENCE + SE_ADAPTER,
     output: 
-        reads = SCRATCH + "/trimmed/{sample}_" + R1_SUF + "_trim.fastq.gz",
-        unpaired = SCRATCH + "/trimmed/{sample}_.unpaired.fastq.gz"
+        reads = SCRATCH + "/trimmed/{sample}_" + R1_SUF + "_trim.fastq.gz"
     conda: "rnaseq-env.yml"
     shell:
         """
-        trimmomatic SE {input.reads} \
-        {output.reads} {output.unpaired} \
+        trimmomatic SE {input.reads} {output.reads} \
         ILLUMINACLIP:{input.adapters}:2:0:15 LEADING:2 TRAILING:2 \
         SLIDINGWINDOW:4:2 MINLEN:25    
         """
